@@ -204,7 +204,7 @@ $username = $_SESSION['username'];
                         <h3>To-Do List</h3>
                         <p>Manage your tasks and stay on top of your responsibilities.</p>
                     </a>
-                    <a href="calendar.php" class="module-card">
+                    <a href="../controllers/eventController.php" class="module-card">
                         <div class="module-icon">📅</div>
                         <h3>Event Calendar</h3>
                         <p>Schedule your events and never miss an important date again.</p>
