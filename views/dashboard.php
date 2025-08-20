@@ -209,7 +209,7 @@ $username = $_SESSION['username'];
                         <h3>Event Calendar</h3>
                         <p>Schedule your events and never miss an important date again.</p>
                     </a>
-                    <a href="expenses.php" class="module-card">
+                    <a href="../controllers/expenseController.php" class="module-card">
                         <div class="module-icon">💰</div>
                         <h3>Expense Tracker</h3>
                         <p>Track your spending and manage your budget effectively.</p>
