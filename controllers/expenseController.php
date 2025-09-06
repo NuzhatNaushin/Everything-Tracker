@@ -16,7 +16,27 @@ require_once __DIR__ . '/../models/Expense.php';
 $expenseModel = new Expense($conn);
 $user_id = $_SESSION['user_id'];
 
-// Get current month and year for display
+// --- NEW LOGIC FOR REPORT GENERATION ---
+if (isset($_GET['report']) && $_GET['report'] === 'true') {
+    // Set headers to return a JSON response
+    header('Content-Type: application/json');
+
+    $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : null;
+    $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : null;
+
+    if ($start_date && $end_date) {
+        // Call the model to get the report data
+        $report_data = $expenseModel->getReportData($user_id, $start_date, $end_date);
+        echo json_encode($report_data);
+    } else {
+        // Return an empty array if dates are missing
+        echo json_encode([]);
+    }
+    exit; // Stop script execution after returning JSON
+}
+// --- END NEW LOGIC ---
+
+// Default action: display calendar for the current month
 $current_month = isset($_GET['month']) ? intval($_GET['month']) : date('n');
 $current_year = isset($_GET['year']) ? intval($_GET['year']) : date('Y');
 

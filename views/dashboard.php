@@ -214,7 +214,7 @@ $username = $_SESSION['username'];
                         <h3>Expense Tracker</h3>
                         <p>Track your spending and manage your budget effectively.</p>
                     </a>
-                    <a href="period.php" class="module-card">
+                    <a href="../controllers/periodController.php" class="module-card">
                         <div class="module-icon">🩺</div>
                         <h3>Period Tracker</h3>
                         <p>Monitor your cycle with a simple and intuitive tracker.</p>
