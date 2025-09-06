@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 03, 2025 at 05:00 PM
+-- Generation Time: Sep 06, 2025 at 10:33 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -34,8 +34,17 @@ CREATE TABLE `events` (
   `description` text DEFAULT NULL,
   `start_date` date NOT NULL,
   `end_date` date NOT NULL,
-  `created_at` datetime DEFAULT current_timestamp()
+  `created_at` datetime DEFAULT current_timestamp(),
+  `category` varchar(255) NOT NULL DEFAULT 'Personal',
+  `color_code` varchar(7) NOT NULL DEFAULT '#667eea'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `events`
+--
+
+INSERT INTO `events` (`id`, `user_id`, `title`, `description`, `start_date`, `end_date`, `created_at`, `category`, `color_code`) VALUES
+(1, 2, 'srea\'s birthday', '', '2025-09-25', '2025-09-18', '2025-09-06 16:12:31', 'Personal', '#d18ff5');
 
 -- --------------------------------------------------------
 
@@ -53,6 +62,14 @@ CREATE TABLE `expenses` (
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `expenses`
+--
+
+INSERT INTO `expenses` (`id`, `user_id`, `amount`, `category`, `description`, `date`, `created_at`) VALUES
+(1, 2, 300.00, 'Food', '', '2025-09-06', '2025-09-06 16:15:19'),
+(2, 2, 700.00, 'Entertainment', '', '2025-09-01', '2025-09-07 01:55:14');
+
 -- --------------------------------------------------------
 
 --
@@ -67,6 +84,51 @@ CREATE TABLE `periods` (
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `periods`
+--
+
+INSERT INTO `periods` (`id`, `user_id`, `start_date`, `end_date`, `created_at`) VALUES
+(1, 2, '2025-07-30', '2025-08-02', '2025-09-07 02:19:01'),
+(2, 2, '2025-09-02', '2025-09-06', '2025-09-07 02:20:25');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `shared_events`
+--
+
+CREATE TABLE `shared_events` (
+  `id` int(11) NOT NULL,
+  `event_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `shared_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `symptoms`
+--
+
+CREATE TABLE `symptoms` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `date` date NOT NULL,
+  `cramps` varchar(20) DEFAULT NULL,
+  `flow_level` varchar(20) DEFAULT NULL,
+  `mood` varchar(50) DEFAULT NULL,
+  `notes` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `symptoms`
+--
+
+INSERT INTO `symptoms` (`id`, `user_id`, `date`, `cramps`, `flow_level`, `mood`, `notes`) VALUES
+(1, 2, '2025-09-03', 'yes', 'heavy', 'In pain', ''),
+(2, 2, '2025-09-05', NULL, 'low', 'Sad', '');
+
 -- --------------------------------------------------------
 
 --
@@ -77,29 +139,23 @@ CREATE TABLE `todos` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `task` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
+  `completed` tinyint(1) NOT NULL DEFAULT 0,
+  `priority` enum('Low','Medium','High') NOT NULL DEFAULT 'Medium',
   `due_date` date DEFAULT NULL,
-  `priority` enum('High','Medium','Low') DEFAULT 'Medium',
-  `status` enum('pending','completed') DEFAULT 'pending',
-  `label` varchar(100) DEFAULT NULL,
-  `reminder_date` datetime DEFAULT NULL,
-  `is_recurring` tinyint(1) DEFAULT 0,
-  `recurrence_type` enum('daily','weekly','monthly','yearly') DEFAULT NULL,
-  `recurrence_interval` int(11) DEFAULT 1,
+  `label` varchar(50) DEFAULT NULL,
+  `recurring` tinyint(1) NOT NULL DEFAULT 0,
+  `recurring_frequency` varchar(20) DEFAULT NULL,
   `parent_task_id` int(11) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `todos`
 --
 
-INSERT INTO `todos` (`id`, `user_id`, `task`, `description`, `due_date`, `priority`, `status`, `label`, `reminder_date`, `is_recurring`, `recurrence_type`, `recurrence_interval`, `parent_task_id`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Complete project proposal', 'Write and submit the Q4 project proposal document', '2025-08-10', 'High', 'pending', 'Work', NULL, 0, NULL, 1, NULL, '2025-08-03 20:57:18', '2025-08-03 20:57:18'),
-(2, 1, 'Buy groceries', 'Milk, eggs, bread, vegetables', '2025-08-05', 'Medium', 'pending', 'Personal', NULL, 0, NULL, 1, NULL, '2025-08-03 20:57:18', '2025-08-03 20:57:18'),
-(3, 1, 'Schedule doctor appointment', 'Annual health checkup', '2025-08-15', 'Medium', 'pending', 'Health', NULL, 0, NULL, 1, NULL, '2025-08-03 20:57:18', '2025-08-03 20:57:18'),
-(4, 1, 'Learn new programming language', 'Start Python course online', NULL, 'Low', 'pending', 'Learning', NULL, 0, NULL, 1, NULL, '2025-08-03 20:57:18', '2025-08-03 20:57:18');
+INSERT INTO `todos` (`id`, `user_id`, `task`, `completed`, `priority`, `due_date`, `label`, `recurring`, `recurring_frequency`, `parent_task_id`, `created_at`) VALUES
+(1, 2, 'laundry', 1, 'Medium', '0000-00-00', '', 0, 'Daily', NULL, '2025-09-06 16:06:46'),
+(3, 2, 'build website', 0, 'High', '2025-09-20', '', 1, 'Weekly', NULL, '2025-09-06 16:07:27');
 
 -- --------------------------------------------------------
 
@@ -120,7 +176,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `email`, `created_at`) VALUES
-(1, 'shreya', '$2y$10$CNhfgm.ol/e5SdDxChWVV.Jq2bdYcr2l4grJyuZKcypv47QMip7g.', 'shreya@gmail.com', '2025-08-03 20:30:52');
+(2, 'vega', '123', 'vega@gmail.com', '2025-09-06 04:26:05');
 
 --
 -- Indexes for dumped tables
@@ -148,15 +204,27 @@ ALTER TABLE `periods`
   ADD KEY `user_id` (`user_id`);
 
 --
+-- Indexes for table `shared_events`
+--
+ALTER TABLE `shared_events`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_event_user` (`event_id`,`user_id`),
+  ADD KEY `shared_events_ibfk_2` (`user_id`);
+
+--
+-- Indexes for table `symptoms`
+--
+ALTER TABLE `symptoms`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `user_date_unique` (`user_id`,`date`);
+
+--
 -- Indexes for table `todos`
 --
 ALTER TABLE `todos`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_user_status` (`user_id`,`status`),
-  ADD KEY `idx_user_priority` (`user_id`,`priority`),
-  ADD KEY `idx_user_due_date` (`user_id`,`due_date`),
-  ADD KEY `idx_user_label` (`user_id`,`label`),
-  ADD KEY `todos_ibfk_2` (`parent_task_id`);
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `parent_task_id` (`parent_task_id`);
 
 --
 -- Indexes for table `users`
@@ -174,31 +242,43 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `events`
 --
 ALTER TABLE `events`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `expenses`
 --
 ALTER TABLE `expenses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `periods`
 --
 ALTER TABLE `periods`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `shared_events`
+--
+ALTER TABLE `shared_events`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `symptoms`
+--
+ALTER TABLE `symptoms`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `todos`
 --
 ALTER TABLE `todos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables
@@ -221,6 +301,19 @@ ALTER TABLE `expenses`
 --
 ALTER TABLE `periods`
   ADD CONSTRAINT `periods_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `shared_events`
+--
+ALTER TABLE `shared_events`
+  ADD CONSTRAINT `shared_events_ibfk_1` FOREIGN KEY (`event_id`) REFERENCES `events` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `shared_events_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `symptoms`
+--
+ALTER TABLE `symptoms`
+  ADD CONSTRAINT `symptoms_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `todos`
