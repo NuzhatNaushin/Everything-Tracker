@@ -3,13 +3,12 @@
 
 session_start();
 
-// Check if the user is logged in. If not, redirect to the login page.
+// redirect to login if not logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
 
-// User is logged in, so we can access their session data.
 $username = $_SESSION['username'];
 ?>
 
@@ -20,7 +19,7 @@ $username = $_SESSION['username'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Everything Tracker</title>
     <style>
-        /* General Styles - Shared with homepage */
+  
         * {
             margin: 0;
             padding: 0;

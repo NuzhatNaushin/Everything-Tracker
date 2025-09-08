@@ -1,8 +1,6 @@
 <?php
 // db_connection.php
 
-// This file contains the Database class and establishes the connection.
-
 class Database {
     private $host = "localhost";
     private $db_name = "tracker";
@@ -25,7 +23,6 @@ class Database {
     }
 }
 
-// Create a new Database instance and get the connection
 $database = new Database();
 $conn = $database->getConnection();
 

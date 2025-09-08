@@ -1,12 +1,10 @@
 <?php
 // controllers/eventController.php
 
-// Ensure session is started only if it hasn't been already
+
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-
-// Check if the user is logged in. This check should redirect to login if no user is found.
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../views/login.php");
     exit;
@@ -47,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $category = trim($_POST['category']);
         $color_code = trim($_POST['color_code']);
         
-        // Pass the $user_id as the 8th argument to match the Event model's update function
+        // Pass the $user_id as an argument to match the Event model's update function
         if ($eventModel->update($id, $user_id, $title, $description, $start_date, $end_date, $category, $color_code)) {
             $_SESSION['message'] = "Event updated successfully!";
         } else {
@@ -79,14 +77,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
     }
 
-    // Redirect back to the calendar view after a successful action
     header("Location: ../controllers/eventController.php?month=" . $current_month . "&year=" . $current_year);
     exit;
 }
 
-// Fetch events for the current month, including shared events
 $events = $eventModel->getEventsByMonth($user_id, $current_month, $current_year);
 
-// Include the view file to render the calendar
 require_once __DIR__ . '/../views/eventView.php';
 ?>

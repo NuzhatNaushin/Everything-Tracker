@@ -1,9 +1,6 @@
 <?php
 // models/Period.php
 
-/**
- * The Period class is the model for handling all period-related database operations.
- */
 class Period
 {
     private $conn;
@@ -11,8 +8,8 @@ class Period
     private $symptoms_table = 'symptoms';
 
     /**
-     * Constructor for the Period class.
-     * @param PDO $db The database connection object.
+     * Constructor 
+     * @param PDO $db 
      */
     public function __construct($db)
     {
@@ -20,7 +17,7 @@ class Period
     }
 
     /**
-     * Adds a new period entry.
+     * Aadd period
      *
      * @param int $user_id
      * @param string $start_date
@@ -35,7 +32,7 @@ class Period
     }
 
     /**
-     * Updates an existing period entry.
+     * edit period
      *
      * @param int $id
      * @param string $start_date
@@ -95,7 +92,7 @@ class Period
     }
 
     /**
-     * Adds a new symptom entry.
+     * Addsymptom 
      *
      * @param int $user_id
      * @param string $date
@@ -113,7 +110,7 @@ class Period
     }
 
     /**
-     * Updates an existing symptom entry.
+     * edit symptom
      *
      * @param int $id
      * @param int $user_id

@@ -1,16 +1,13 @@
 <?php
 // models/todo.php
 
-/**
- * The Todo class is the model for handling all to-do list database operations.
- */
 class Todo {
     private $conn;
     private $table = 'todos';
 
     /**
-     * Constructor for the Todo class.
-     * @param PDO $db The database connection object.
+     * Constructor
+     * @param PDO 
      */
     public function __construct($db) {
         $this->conn = $db;
@@ -18,8 +15,8 @@ class Todo {
 
     /**
      * Adds a new to-do item to the database.
-     * @param array $data An associative array containing task details.
-     * @return bool True on success, false on failure.
+     * @param array 
+     * @return bool 
      */
     public function create($data) {
         $query = "INSERT INTO " . $this->table . " (user_id, task, due_date, priority, label, recurring, recurring_frequency) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -36,10 +33,10 @@ class Todo {
     }
 
     /**
-     * Updates an existing to-do item in the database.
-     * @param int $id The ID of the to-do item.
-     * @param array $data An associative array with updated task details.
-     * @return bool True on success, false on failure.
+     * editing todo item
+     * @param int $id 
+     * @param array $data 
+     * @return bool 
      */
     public function update($id, $data) {
         $query = "UPDATE " . $this->table . " SET task = ?, due_date = ?, priority = ?, label = ?, completed = ?, recurring = ?, recurring_frequency = ? WHERE id = ? AND user_id = ?";
@@ -58,11 +55,11 @@ class Todo {
     }
 
     /**
-     * Toggles the completion status of a to-do item.
-     * @param int $id The ID of the to-do item.
-     * @param int $user_id The ID of the user to ensure ownership.
-     * @param int $completed The new completion status (0 or 1).
-     * @return bool True on success, false on failure.
+     * Toggle completion 
+     * @param int $id 
+     * @param int $user_id 
+     * @param int $completed 
+     * @return bool
      */
     public function toggleCompletion($id, $user_id, $completed) {
         $query = "UPDATE " . $this->table . " SET completed = ? WHERE id = ? AND user_id = ?";
@@ -71,9 +68,9 @@ class Todo {
     }
 
     /**
-     * Fetches a single todo item by its ID.
-     * @param int $id The ID of the todo item.
-     * @return array|false The todo item data or false if not found.
+     * Fetches a single todo item 
+     * @param int $id 
+     * @return array|false 
      */
     public function getTodoById($id) {
         $query = "SELECT * FROM " . $this->table . " WHERE id = ?";
@@ -83,10 +80,10 @@ class Todo {
     }
 
     /**
-     * Deletes a to-do item from the database.
-     * @param int $id The ID of the to-do item to delete.
-     * @param int $user_id The ID of the user to ensure ownership.
-     * @return bool True on success, false on failure.
+     * Deletes a to-do item 
+     * @param int $id 
+     * @param int $user_id 
+     * @return bool 
      */
     public function delete($id, $user_id) {
         $query = "DELETE FROM " . $this->table . " WHERE id = ? AND user_id = ?";
@@ -95,17 +92,17 @@ class Todo {
     }
 
     /**
-     * Retrieves all to-do items for a specific user, with optional filters and sorting.
-     * @param int $user_id The ID of the user.
-     * @param array $filters An array of filters (e.g., ['status' => 'incomplete', 'priority' => 'High']).
-     * @param string $sort_by The column to sort by (e.g., 'due_date').
-     * @return array An array of to-do items.
+     * Retrieves all to-do items + filters and sorting.
+     * @param int $user_id 
+     * @param array $filters 
+     * @param string $sort_by 
+     * @return array 
      */
     public function getTodosByUserId($user_id, $filters = [], $sort_by = 'created_at DESC') {
         $query = "SELECT * FROM " . $this->table . " WHERE user_id = ?";
         $params = [$user_id];
 
-        // Apply filters dynamically
+       //filteringh 
         if (!empty($filters['status'])) {
             if ($filters['status'] === 'incomplete') {
                 $query .= " AND completed = 0";
@@ -128,7 +125,7 @@ class Todo {
             $params[] = $search_term;
         }
 
-        // Apply sorting
+        //sorting
         if (!empty($sort_by)) {
             $query .= " ORDER BY " . $sort_by;
         }

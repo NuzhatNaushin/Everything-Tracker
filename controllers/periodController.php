@@ -92,8 +92,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 }
 
 // Fetch all periods for the calendar month and all symptoms
-// The period-coloring logic was updated to fetch periods that *overlap*
-// with the current month, not just those that start in it.
 $start_of_month = date('Y-m-01', mktime(0, 0, 0, $current_month, 1, $current_year));
 $end_of_month = date('Y-m-t', mktime(0, 0, 0, $current_month, 1, $current_year));
 $periods = $periodModel->getPeriodsOverlappingMonth($user_id, $start_of_month, $end_of_month);
@@ -141,6 +139,5 @@ foreach ($symptoms as $symptom) {
     $symptoms_by_date[$symptom['date']] = $symptom;
 }
 
-// Pass variables to the view
 require_once __DIR__ . '/../views/periodView.php';
 ?>

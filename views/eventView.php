@@ -1,14 +1,14 @@
 <!-- views/eventView.php -->
 
 <?php
-// This view expects the $events, $current_month, and $current_year variables to be set by the controller.
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
 $username = $_SESSION['username'];
 
-// Calculate calendar details
+//calendar details
 $first_day_of_month = mktime(0, 0, 0, $current_month, 1, $current_year);
 $number_of_days = date('t', $first_day_of_month);
 $date_components = getdate($first_day_of_month);

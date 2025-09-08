@@ -1,6 +1,5 @@
 <?php
-// This view expects the $todos variable to be set by the controller.
-// It also expects the user to be logged in and the session to be started.
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;

@@ -1,24 +1,21 @@
 <?php
 // models/Expense.php
 
-/**
- * The Expense class is the model for handling all expense-related database operations.
- */
 class Expense {
     private $conn;
     private $table = 'expenses';
-    private $sharedTable = 'shared_expenses'; // Example for future sharing feature, though not implemented in this module.
+    private $sharedTable = 'shared_expenses'; // ekhono implement kora baki
 
     /**
-     * Constructor for the Expense class.
-     * @param PDO $db The database connection object.
+     * Construction
+     * @param PDO
      */
     public function __construct($db) {
         $this->conn = $db;
     }
 
     /**
-     * Adds a new expense for a user.
+     * for adding a new expense
      *
      * @param int $user_id
      * @param float $amount
@@ -63,7 +60,7 @@ class Expense {
     }
 
     /**
-     * Updates an existing expense.
+     * editing expense.
      *
      * @param int $id
      * @param int $user_id

@@ -16,7 +16,7 @@ require_once __DIR__ . '/../models/Expense.php';
 $expenseModel = new Expense($conn);
 $user_id = $_SESSION['user_id'];
 
-// --- NEW LOGIC FOR REPORT GENERATION ---
+// REPORT GENERATION 
 if (isset($_GET['report']) && $_GET['report'] === 'true') {
     // Set headers to return a JSON response
     header('Content-Type: application/json');
@@ -29,14 +29,12 @@ if (isset($_GET['report']) && $_GET['report'] === 'true') {
         $report_data = $expenseModel->getReportData($user_id, $start_date, $end_date);
         echo json_encode($report_data);
     } else {
-        // Return an empty array if dates are missing
         echo json_encode([]);
     }
-    exit; // Stop script execution after returning JSON
+    exit; 
 }
-// --- END NEW LOGIC ---
 
-// Default action: display calendar for the current month
+//  display calendar for the current month
 $current_month = isset($_GET['month']) ? intval($_GET['month']) : date('n');
 $current_year = isset($_GET['year']) ? intval($_GET['year']) : date('Y');
 
@@ -83,10 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 // Fetch all expenses for the current month and year
 $expenses = $expenseModel->getMonthlyExpenses($user_id, $current_month, $current_year);
 
-// Get monthly summary data for chart or display
 $monthly_summary = $expenseModel->getMonthlySummary($user_id, $current_month, $current_year);
 
-// Fetch all available categories for the user (can be improved by getting from a separate table)
 $categories = array_unique(array_column($expenses, 'category'));
 
 // Check for category filter
@@ -97,6 +93,5 @@ if (!empty($filtered_category)) {
     });
 }
 
-// Pass variables to the view
 require_once __DIR__ . '/../views/expenseView.php';
 ?>

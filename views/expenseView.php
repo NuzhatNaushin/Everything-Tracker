@@ -1,7 +1,6 @@
 <!-- views/expenseView.php -->
 
 <?php
-// This view expects the $expenses, $monthly_summary, $current_month, $current_year, and $categories variables to be set by the controller.
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;

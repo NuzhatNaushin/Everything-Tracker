@@ -1,8 +1,7 @@
 <!-- views/periodView.php -->
 
 <?php
-// This view expects variables from the controller like $current_month, $current_year,
-// $period_days, $symptoms_by_date, $next_period_start, etc.
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
@@ -10,7 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 $username = $_SESSION['username'];
 $month_name = date('F', mktime(0, 0, 0, $current_month, 10));
 
-// Calculate calendar details
+// calendar details
 $first_day_of_month = mktime(0, 0, 0, $current_month, 1, $current_year);
 $number_of_days = date('t', $first_day_of_month);
 $date_components = getdate($first_day_of_month);
