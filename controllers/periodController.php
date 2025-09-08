@@ -24,6 +24,10 @@ $current_year = isset($_GET['year']) ? intval($_GET['year']) : date('Y');
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
 
+    // Capture the current month and year for redirection
+    $redirect_month = isset($_POST['month']) ? intval($_POST['month']) : $current_month;
+    $redirect_year = isset($_POST['year']) ? intval($_POST['year']) : $current_year;
+
     if ($action === 'add-period') {
         $start_date = trim($_POST['start_date']);
         $end_date = trim($_POST['end_date']);
@@ -32,34 +36,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         } else {
             $_SESSION['message'] = "Failed to add period entry.";
         }
-    } elseif ($action === 'log-symptom') {
-        $date = trim($_POST['date']);
-        $cramps = isset($_POST['cramps']) ? trim($_POST['cramps']) : null;
-        $flow_level = isset($_POST['flow_level']) ? trim($_POST['flow_level']) : null;
-        $mood = isset($_POST['mood']) ? trim($_POST['mood']) : null;
-        $notes = trim($_POST['notes']);
-
-        if ($periodModel->addSymptom($user_id, $date, $cramps, $flow_level, $mood, $notes)) {
-            $_SESSION['message'] = "Symptom logged successfully!";
+    } elseif ($action === 'update-period') {
+        $id = trim($_POST['period_id']);
+        $start_date = trim($_POST['start_date']);
+        $end_date = trim($_POST['end_date']);
+        if ($periodModel->updatePeriod($id, $start_date, $end_date, $user_id)) {
+            $_SESSION['message'] = "Period entry updated successfully!";
         } else {
-            $_SESSION['message'] = "Failed to log symptom.";
+            $_SESSION['message'] = "Failed to update period entry.";
         }
     } elseif ($action === 'delete-period') {
-        $id = trim($_POST['id']);
+        $id = trim($_POST['period_id']);
         if ($periodModel->deletePeriod($id, $user_id)) {
             $_SESSION['message'] = "Period entry deleted successfully!";
         } else {
             $_SESSION['message'] = "Failed to delete period entry.";
         }
+    } elseif ($action === 'save-symptom') {
+        $date = trim($_POST['date']);
+        $symptom_id = isset($_POST['symptom_id']) ? intval($_POST['symptom_id']) : null;
+        $flow_level_post = isset($_POST['flow_level']) ? $_POST['flow_level'] : null;
+        $flow_level = is_array($flow_level_post) ? $flow_level_post[0] : $flow_level_post;
+        
+        $cramps = isset($_POST['cramps']) ? trim($_POST['cramps']) : null;
+        $mood = isset($_POST['mood']) ? trim($_POST['mood']) : null;
+        $notes = trim($_POST['notes']);
+
+        if ($symptom_id) {
+            // Update existing symptom
+            if ($periodModel->updateSymptom($symptom_id, $user_id, $cramps, $flow_level, $mood, $notes)) {
+                $_SESSION['message'] = "Symptom updated successfully!";
+            } else {
+                $_SESSION['message'] = "Failed to update symptom.";
+            }
+        } else {
+            // Add new symptom
+            if ($periodModel->addSymptom($user_id, $date, $cramps, $flow_level, $mood, $notes)) {
+                $_SESSION['message'] = "Symptom logged successfully!";
+            } else {
+                $_SESSION['message'] = "Failed to log symptom.";
+            }
+        }
+    } elseif ($action === 'delete-symptom') {
+        $id = trim($_POST['symptom_id']);
+        if ($periodModel->deleteSymptom($id, $user_id)) {
+            $_SESSION['message'] = "Symptom deleted successfully!";
+        } else {
+            $_SESSION['message'] = "Failed to delete symptom.";
+        }
     }
     
-    // Redirect back to the calendar view after a successful action
-    header("Location: periodController.php?month=" . $current_month . "&year=" . $current_year);
+    // Redirect back to the correct month and year after a successful action
+    header("Location: periodController.php?month=" . $redirect_month . "&year=" . $redirect_year);
     exit;
 }
 
 // Fetch all periods for the calendar month and all symptoms
-$periods = $periodModel->getPeriods($user_id, $current_month, $current_year);
+// The period-coloring logic was updated to fetch periods that *overlap*
+// with the current month, not just those that start in it.
+$start_of_month = date('Y-m-01', mktime(0, 0, 0, $current_month, 1, $current_year));
+$end_of_month = date('Y-m-t', mktime(0, 0, 0, $current_month, 1, $current_year));
+$periods = $periodModel->getPeriodsOverlappingMonth($user_id, $start_of_month, $end_of_month);
+
 $all_periods = $periodModel->getAllPeriods($user_id);
 $symptoms = $periodModel->getSymptoms($user_id, $current_month, $current_year);
 
@@ -88,7 +126,6 @@ if (count($all_periods) >= 1) {
 }
 
 // Map periods and symptoms to a calendar grid
-$calendar_data = [];
 $period_days = [];
 foreach ($periods as $period) {
     $start_date = new DateTime($period['start_date']);

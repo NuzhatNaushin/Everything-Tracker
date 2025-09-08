@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 06, 2025 at 10:33 PM
+-- Generation Time: Sep 08, 2025 at 08:37 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -68,7 +68,11 @@ CREATE TABLE `expenses` (
 
 INSERT INTO `expenses` (`id`, `user_id`, `amount`, `category`, `description`, `date`, `created_at`) VALUES
 (1, 2, 300.00, 'Food', '', '2025-09-06', '2025-09-06 16:15:19'),
-(2, 2, 700.00, 'Entertainment', '', '2025-09-01', '2025-09-07 01:55:14');
+(2, 2, 700.00, 'Entertainment', '', '2025-09-01', '2025-09-07 01:55:14'),
+(3, 3, 300.00, 'Food', '', '2025-09-01', '2025-09-08 19:34:44'),
+(4, 3, 700.00, 'Entertainment', '', '2025-08-28', '2025-09-08 19:35:02'),
+(6, 3, 500.00, 'Transportation', '', '2025-09-08', '2025-09-08 19:36:12'),
+(7, 3, 750.00, 'Entertainment', '', '2025-09-05', '2025-09-08 19:36:29');
 
 -- --------------------------------------------------------
 
@@ -90,7 +94,9 @@ CREATE TABLE `periods` (
 
 INSERT INTO `periods` (`id`, `user_id`, `start_date`, `end_date`, `created_at`) VALUES
 (1, 2, '2025-07-30', '2025-08-02', '2025-09-07 02:19:01'),
-(2, 2, '2025-09-02', '2025-09-06', '2025-09-07 02:20:25');
+(2, 2, '2025-09-02', '2025-09-06', '2025-09-07 02:20:25'),
+(3, 3, '2025-06-28', '2025-07-02', '2025-09-08 23:51:09'),
+(6, 3, '2025-08-30', '2025-09-02', '2025-09-09 00:10:15');
 
 -- --------------------------------------------------------
 
@@ -127,7 +133,11 @@ CREATE TABLE `symptoms` (
 
 INSERT INTO `symptoms` (`id`, `user_id`, `date`, `cramps`, `flow_level`, `mood`, `notes`) VALUES
 (1, 2, '2025-09-03', 'yes', 'heavy', 'In pain', ''),
-(2, 2, '2025-09-05', NULL, 'low', 'Sad', '');
+(2, 2, '2025-09-05', NULL, 'low', 'Sad', ''),
+(6, 3, '2025-09-01', 'yes', 'medium', 'Sad', ''),
+(7, 3, '2025-09-02', 'yes', 'heavy', 'Normal', ''),
+(8, 3, '2025-08-20', 'yes', NULL, 'Tired', 'Took Algin 25 mg'),
+(9, 3, '2025-07-16', NULL, NULL, '', '');
 
 -- --------------------------------------------------------
 
@@ -155,7 +165,9 @@ CREATE TABLE `todos` (
 
 INSERT INTO `todos` (`id`, `user_id`, `task`, `completed`, `priority`, `due_date`, `label`, `recurring`, `recurring_frequency`, `parent_task_id`, `created_at`) VALUES
 (1, 2, 'laundry', 1, 'Medium', '0000-00-00', '', 0, 'Daily', NULL, '2025-09-06 16:06:46'),
-(3, 2, 'build website', 0, 'High', '2025-09-20', '', 1, 'Weekly', NULL, '2025-09-06 16:07:27');
+(3, 2, 'build website', 0, 'High', '2025-09-20', '', 1, 'Weekly', NULL, '2025-09-06 16:07:27'),
+(4, 3, 'water plants', 1, 'Low', '2025-09-10', '', 1, 'Weekly', NULL, '2025-09-08 19:32:27'),
+(5, 3, 'water plants', 0, 'Low', '2025-09-17', '', 1, 'Weekly', NULL, '2025-09-08 19:32:33');
 
 -- --------------------------------------------------------
 
@@ -176,7 +188,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `email`, `created_at`) VALUES
-(2, 'vega', '123', 'vega@gmail.com', '2025-09-06 04:26:05');
+(2, 'vega', '123', 'vega@gmail.com', '2025-09-06 04:26:05'),
+(3, 'shreya', '123', 'shreya@gmail.com', '2025-09-08 19:28:35');
 
 --
 -- Indexes for dumped tables
@@ -248,13 +261,13 @@ ALTER TABLE `events`
 -- AUTO_INCREMENT for table `expenses`
 --
 ALTER TABLE `expenses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `periods`
 --
 ALTER TABLE `periods`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `shared_events`
@@ -266,19 +279,19 @@ ALTER TABLE `shared_events`
 -- AUTO_INCREMENT for table `symptoms`
 --
 ALTER TABLE `symptoms`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `todos`
 --
 ALTER TABLE `todos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables

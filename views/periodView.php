@@ -72,6 +72,38 @@ $next_year = $current_month == 12 ? $current_year + 1 : $current_year;
         .symptom-icon {
             font-size: 1.2rem;
         }
+        .tooltip {
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+            white-space: pre-wrap;
+            pointer-events: none;
+            max-width: 250px;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 120%;
+        }
+        .calendar-day:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -103,7 +135,7 @@ $next_year = $current_month == 12 ? $current_year + 1 : $current_year;
                 <a href="?month=<?= $next_month ?>&year=<?= $next_year ?>" class="text-gray-600 hover:text-gray-800"><i class="fas fa-chevron-right"></i></a>
             </div>
             <div class="mt-4 md:mt-0">
-                <button onclick="openAddPeriodModal()" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-300 transform hover:scale-105">
+                <button onclick="openManagePeriodsModal()" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-300 transform hover:scale-105">
                     <i class="fas fa-plus mr-2"></i>Log Period
                 </button>
             </div>
@@ -170,20 +202,40 @@ $next_year = $current_month == 12 ? $current_year + 1 : $current_year;
                         $bgColor = 'bg-gray-100 hover:bg-gray-200';
                     }
                     ?>
-                    <div onclick="openSymptomModal('<?= $current_date ?>')" class="calendar-day cursor-pointer rounded-lg p-2 shadow-md transition-all transform hover:scale-105 <?= $bgColor ?>">
+                    <div onclick="openSymptomModal('<?= $current_date ?>', '<?= htmlspecialchars(json_encode($has_symptom ? $symptoms_by_date[$current_date] : null), ENT_QUOTES, 'UTF-8') ?>')" class="calendar-day relative cursor-pointer rounded-lg p-2 shadow-md transition-all transform hover:scale-105 <?= $bgColor ?>">
                         <div class="text-sm font-bold text-right <?= $is_ovulation_day ? 'text-green-800' : ($is_fertile_day ? 'text-blue-800' : ($is_period_day ? 'text-pink-800' : 'text-gray-800')) ?>">
                             <?= $day ?>
                         </div>
                         <div class="mt-2 flex flex-col items-center space-y-1">
                             <?php if ($has_symptom):
                                 $symptom = $symptoms_by_date[$current_date]; ?>
-                                <i class="fas fa-droplet symptom-icon flow-level-icon <?= strtolower($symptom['flow_level']) ?>"></i>
-                                <?php if ($symptom['cramps']): ?>
+                                <?php if ($symptom['flow_level']): ?>
+                                    <i class="fas fa-droplet symptom-icon flow-level-icon <?= strtolower($symptom['flow_level']) ?>"></i>
+                                <?php endif; ?>
+                                <?php if ($symptom['cramps'] === 'yes'): ?>
                                     <i class="fas fa-heart-crack symptom-icon text-gray-700"></i>
                                 <?php endif; ?>
                                 <?php if ($symptom['mood']): ?>
                                     <i class="fas fa-face-smile symptom-icon text-gray-700"></i>
                                 <?php endif; ?>
+                                <?php if ($symptom['notes']): ?>
+                                    <i class="fas fa-info-circle text-gray-700 symptom-icon"></i>
+                                <?php endif; ?>
+                                <div class="tooltip z-50">
+                                    <div class="font-bold text-base mb-1"><?= date('F j, Y', strtotime($current_date)) ?></div>
+                                    <?php if ($symptom['cramps'] === 'yes'): ?>
+                                        <div class="flex items-center"><i class="fas fa-heart-crack mr-2"></i>Cramps</div>
+                                    <?php endif; ?>
+                                    <?php if ($symptom['flow_level']): ?>
+                                        <div class="flex items-center"><i class="fas fa-droplet mr-2"></i>Flow: <?= ucfirst($symptom['flow_level']) ?></div>
+                                    <?php endif; ?>
+                                    <?php if ($symptom['mood']): ?>
+                                        <div class="flex items-center"><i class="fas fa-face-smile mr-2"></i>Mood: <?= htmlspecialchars($symptom['mood']) ?></div>
+                                    <?php endif; ?>
+                                    <?php if ($symptom['notes']): ?>
+                                        <div class="flex items-center mt-2"><i class="fas fa-sticky-note mr-2"></i>Notes: <br><?= nl2br(htmlspecialchars($symptom['notes'])) ?></div>
+                                    <?php endif; ?>
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -192,25 +244,42 @@ $next_year = $current_month == 12 ? $current_year + 1 : $current_year;
         </div>
     </div>
 
-    <!-- Add Period Modal -->
-    <div id="addPeriodModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50">
+    <!-- Manage Periods Modal -->
+    <div id="managePeriodsModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-lg mx-4">
+            <h2 class="text-2xl font-bold mb-4 text-pink-700">Manage Periods</h2>
+            <div id="period-list" class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                <!-- Period entries will be populated here by JS -->
+            </div>
+            <button onclick="openAddPeriodModal()" class="mt-6 w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition duration-300 transform hover:scale-105">
+                <i class="fas fa-plus mr-2"></i>Add New Period
+            </button>
+            <div class="flex justify-end space-x-4 mt-6">
+                <button type="button" onclick="closeManagePeriodsModal()" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold rounded-lg transition duration-300">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Period Modal -->
+    <div id="addEditPeriodModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50">
         <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md mx-4">
-            <h2 class="text-2xl font-bold mb-4 text-pink-700">Log New Period</h2>
-            <form action="periodController.php" method="POST">
-                <input type="hidden" name="action" value="add-period">
+            <h2 id="periodModalTitle" class="text-2xl font-bold mb-4 text-pink-700">Log New Period</h2>
+            <form id="periodForm" action="periodController.php" method="POST">
+                <input type="hidden" name="action" id="periodAction" value="add-period">
+                <input type="hidden" name="period_id" id="periodId">
                 <div class="space-y-4">
                     <div>
                         <label for="start_date" class="block text-gray-700">Start Date</label>
-                        <input type="date" name="start_date" id="start_date" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-pink-500" required>
+                        <input type="date" name="start_date" id="periodStartDate" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-pink-500" required>
                     </div>
                     <div>
                         <label for="end_date" class="block text-gray-700">End Date</label>
-                        <input type="date" name="end_date" id="end_date" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-pink-500" required>
+                        <input type="date" name="end_date" id="periodEndDate" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-pink-500" required>
                     </div>
                 </div>
                 <div class="flex justify-end space-x-4 mt-6">
-                    <button type="button" onclick="closeAddPeriodModal()" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold rounded-lg transition duration-300">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-bold rounded-lg transition duration-300">Log Period</button>
+                    <button type="button" onclick="closeAddEditPeriodModal()" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold rounded-lg transition duration-300">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-bold rounded-lg shadow-lg transition duration-300">Save</button>
                 </div>
             </form>
         </div>
@@ -220,27 +289,28 @@ $next_year = $current_month == 12 ? $current_year + 1 : $current_year;
     <div id="symptomModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50">
         <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md mx-4">
             <h2 class="text-2xl font-bold mb-4 text-pink-700">Log Symptoms for <span id="symptomDateDisplay"></span></h2>
-            <form action="periodController.php" method="POST">
-                <input type="hidden" name="action" value="log-symptom">
+            <form id="symptomForm" action="periodController.php" method="POST">
+                <input type="hidden" name="action" id="symptomAction" value="save-symptom">
                 <input type="hidden" name="date" id="symptomDateInput">
+                <input type="hidden" name="symptom_id" id="symptomId">
                 <div class="space-y-4">
                     <div class="flex items-center space-x-4">
                         <label class="font-semibold text-gray-700">Cramps</label>
-                        <input type="checkbox" name="cramps" value="yes" class="form-checkbox text-pink-500 w-5 h-5">
+                        <input type="checkbox" name="cramps" id="crampsCheckbox" value="yes" class="form-checkbox text-pink-500 w-5 h-5">
                     </div>
                     <div>
                         <label class="font-semibold text-gray-700">Flow Level</label>
                         <div class="mt-2 flex space-x-4">
                             <label class="flex items-center">
-                                <input type="radio" name="flow_level" value="low" class="form-radio text-pink-500 w-4 h-4" checked>
+                                <input type="checkbox" name="flow_level" value="low" class="flow-checkbox form-checkbox text-pink-500 w-4 h-4" id="lowFlow">
                                 <span class="ml-2 text-sm">Low</span>
                             </label>
                             <label class="flex items-center">
-                                <input type="radio" name="flow_level" value="medium" class="form-radio text-pink-500 w-4 h-4">
+                                <input type="checkbox" name="flow_level" value="medium" class="flow-checkbox form-checkbox text-pink-500 w-4 h-4" id="mediumFlow">
                                 <span class="ml-2 text-sm">Medium</span>
                             </label>
                             <label class="flex items-center">
-                                <input type="radio" name="flow_level" value="heavy" class="form-radio text-pink-500 w-4 h-4">
+                                <input type="checkbox" name="flow_level" value="heavy" class="flow-checkbox form-checkbox text-pink-500 w-4 h-4" id="heavyFlow">
                                 <span class="ml-2 text-sm">Heavy</span>
                             </label>
                         </div>
@@ -254,37 +324,193 @@ $next_year = $current_month == 12 ? $current_year + 1 : $current_year;
                         <textarea name="notes" id="notes" rows="3" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-pink-500" placeholder="Add any additional notes about your day..."></textarea>
                     </div>
                 </div>
-                <div class="flex justify-end space-x-4 mt-6">
+                <div class="flex justify-between space-x-4 mt-6">
+                    <button type="button" onclick="confirmSymptomDeletion()" id="deleteSymptomBtn" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition duration-300 hidden">Delete</button>
+                    <div class="flex-grow"></div>
                     <button type="button" onclick="closeSymptomModal()" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold rounded-lg transition duration-300">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-bold rounded-lg transition duration-300">Save</button>
+                    <button type="submit" class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-bold rounded-lg shadow-lg transition duration-300">Save</button>
                 </div>
             </form>
         </div>
     </div>
+    
+    <!-- Custom Confirmation Modal for Periods -->
+    <div id="deletePeriodConfirmationModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-sm mx-4 text-center">
+            <p class="text-lg font-semibold mb-4 text-gray-700">Are you sure you want to delete this period?</p>
+            <div class="flex justify-center space-x-4">
+                <button type="button" onclick="closeDeletePeriodConfirmationModal()" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold rounded-lg transition duration-300">Cancel</button>
+                <form id="deletePeriodForm" action="periodController.php" method="POST" class="inline">
+                    <input type="hidden" name="action" value="delete-period">
+                    <input type="hidden" name="period_id" id="deletePeriodId">
+                    <button type="submit" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition duration-300">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal for Symptoms -->
+    <div id="deleteSymptomConfirmationModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-sm mx-4 text-center">
+            <p class="text-lg font-semibold mb-4 text-gray-700">Are you sure you want to delete this symptom log?</p>
+            <div class="flex justify-center space-x-4">
+                <button type="button" onclick="closeDeleteSymptomConfirmationModal()" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold rounded-lg transition duration-300">Cancel</button>
+                <form id="deleteSymptomForm" action="periodController.php" method="POST" class="inline">
+                    <input type="hidden" name="action" value="delete-symptom">
+                    <input type="hidden" name="symptom_id" id="deleteSymptomId">
+                    <button type="submit" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition duration-300">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
 
     <script>
-        const addPeriodModal = document.getElementById('addPeriodModal');
+        const managePeriodsModal = document.getElementById('managePeriodsModal');
+        const addEditPeriodModal = document.getElementById('addEditPeriodModal');
         const symptomModal = document.getElementById('symptomModal');
+        const deletePeriodConfirmationModal = document.getElementById('deletePeriodConfirmationModal');
+        const deleteSymptomConfirmationModal = document.getElementById('deleteSymptomConfirmationModal');
 
+        const allPeriods = <?= json_encode($all_periods) ?>;
+        const symptomsByDate = <?= json_encode($symptoms_by_date) ?>;
+        
+        function openManagePeriodsModal() {
+            populatePeriodList();
+            managePeriodsModal.classList.add('open');
+        }
+
+        function closeManagePeriodsModal() {
+            managePeriodsModal.classList.remove('open');
+        }
+        
         function openAddPeriodModal() {
-            addPeriodModal.classList.add('open');
+            document.getElementById('periodModalTitle').innerText = 'Log New Period';
+            document.getElementById('periodAction').value = 'add-period';
+            document.getElementById('periodId').value = '';
+            document.getElementById('periodStartDate').value = '';
+            document.getElementById('periodEndDate').value = '';
+            addEditPeriodModal.classList.add('open');
+            closeManagePeriodsModal();
         }
 
-        function closeAddPeriodModal() {
-            addPeriodModal.classList.remove('open');
+        function openEditPeriodModal(periodId, startDate, endDate) {
+            document.getElementById('periodModalTitle').innerText = 'Edit Period';
+            document.getElementById('periodAction').value = 'update-period';
+            document.getElementById('periodId').value = periodId;
+            document.getElementById('periodStartDate').value = startDate;
+            document.getElementById('periodEndDate').value = endDate;
+            addEditPeriodModal.classList.add('open');
+            closeManagePeriodsModal();
         }
 
-        function openSymptomModal(date) {
+        function closeAddEditPeriodModal() {
+            addEditPeriodModal.classList.remove('open');
+        }
+
+        function populatePeriodList() {
+            const periodList = document.getElementById('period-list');
+            periodList.innerHTML = '';
+            if (allPeriods.length === 0) {
+                periodList.innerHTML = '<p class="text-center text-gray-500">No periods logged yet. Add one to get started!</p>';
+                return;
+            }
+            allPeriods.forEach(period => {
+                const periodItem = document.createElement('div');
+                periodItem.className = 'bg-gray-100 p-4 rounded-lg flex items-center justify-between';
+                const startDate = new Date(period.start_date);
+                const endDate = new Date(period.end_date);
+                const formatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                periodItem.innerHTML = `
+                    <div>
+                        <p class="font-semibold">
+                            <i class="fas fa-calendar-alt mr-2 text-pink-500"></i>
+                            ${formatter.format(startDate)} - ${formatter.format(endDate)}
+                        </p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="openEditPeriodModal(${period.id}, '${period.start_date}', '${period.end_date}')" class="text-blue-500 hover:text-blue-700 transition duration-300">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="confirmPeriodDeletion(${period.id})" class="text-red-500 hover:text-red-700 transition duration-300">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                periodList.appendChild(periodItem);
+            });
+        }
+
+        function openSymptomModal(date, symptomDataString) {
+            const symptomData = JSON.parse(symptomDataString);
+            
             document.getElementById('symptomDateDisplay').innerText = date;
             document.getElementById('symptomDateInput').value = date;
             
-            // Here you could fetch existing symptom data for the day
-            // and pre-fill the form, but for now we'll just open the modal.
+            document.getElementById('crampsCheckbox').checked = false;
+            document.getElementById('mood').value = '';
+            document.getElementById('notes').value = '';
+            document.getElementById('symptomId').value = '';
+            document.querySelectorAll('.flow-checkbox').forEach(cb => cb.checked = false);
+
+            if (symptomData) {
+                document.getElementById('symptomId').value = symptomData.id;
+                document.getElementById('symptomAction').value = 'save-symptom'; // Will be handled as an update
+                document.getElementById('crampsCheckbox').checked = symptomData.cramps === 'yes';
+                document.getElementById('mood').value = symptomData.mood || '';
+                document.getElementById('notes').value = symptomData.notes || '';
+                if (symptomData.flow_level) {
+                    const flowCheckbox = document.getElementById(symptomData.flow_level + 'Flow');
+                    if (flowCheckbox) {
+                        flowCheckbox.checked = true;
+                    }
+                }
+                document.getElementById('deleteSymptomBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('symptomAction').value = 'save-symptom'; // New symptom
+                document.getElementById('deleteSymptomBtn').classList.add('hidden');
+            }
+            
             symptomModal.classList.add('open');
         }
 
         function closeSymptomModal() {
             symptomModal.classList.remove('open');
+        }
+
+        // Handle mutually exclusive flow level checkboxes
+        document.querySelectorAll('.flow-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    document.querySelectorAll('.flow-checkbox').forEach(otherCheckbox => {
+                        if (otherCheckbox !== this) {
+                            otherCheckbox.checked = false;
+                        }
+                    });
+                }
+            });
+        });
+
+        // Confirmation handlers
+        function confirmPeriodDeletion(periodId) {
+            document.getElementById('deletePeriodId').value = periodId;
+            deletePeriodConfirmationModal.classList.add('open');
+        }
+
+        function closeDeletePeriodConfirmationModal() {
+            deletePeriodConfirmationModal.classList.remove('open');
+        }
+
+        function confirmSymptomDeletion() {
+            const symptomId = document.getElementById('symptomId').value;
+            if (symptomId) {
+                document.getElementById('deleteSymptomId').value = symptomId;
+                deleteSymptomConfirmationModal.classList.add('open');
+            }
+        }
+        
+        function closeDeleteSymptomConfirmationModal() {
+            deleteSymptomConfirmationModal.classList.remove('open');
         }
     </script>
 </body>
